@@ -158,9 +158,27 @@ public class ZebraPrinter extends CordovaPlugin {
                 byte[] configLabel = new String("! U1 getvar \""+variable_name+"\"\r\n").getBytes();
                 printerConnection.write(configLabel);
 
-                byte[] data = printerConnection.read();
+                byte[] data = null;
 
-                callbackContext.success(new String(data));
+                for (int i = 0; i < 200; i++) { // wait at most 2 seconds
+                    data = printerConnection.read();
+
+                    if (data != null) {
+                        break;
+                    }
+
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if (data == null) {
+                    callbackContext.success();
+                } else {
+                    callbackContext.success(new String(data));
+                }
             } catch (ConnectionException e) {
                 callbackContext.error("Error Printing: " + e.getMessage());
             }
