@@ -23,3 +23,7 @@ exports.isConnected = function (success, error) {
 exports.print = function (cpcl, success, error) {
     exec(success, error, 'ZebraPrinter', 'print', [cpcl]);
 };
+
+exports.readVariable = function (variable_name, success, error) {
+    exec(success, error, 'ZebraPrinter', 'readVariable', [variable_name]);
+};

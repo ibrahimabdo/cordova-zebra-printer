@@ -48,6 +48,9 @@ public class ZebraPrinter extends CordovaPlugin {
             case "printerStatus":
                 this.printerStatus(callbackContext);
                 return true;
+            case "readVariable":
+                this.readVariable(args,callbackContext);
+                return true;
         }
         return false;
     }
@@ -129,6 +132,37 @@ public class ZebraPrinter extends CordovaPlugin {
                 callbackContext.success();
             } else {
                 callbackContext.error("Print Failed. Printer Likely Disconnected.");
+            }
+        });
+    }
+
+    private void readVariable(JSONArray args, final CallbackContext callbackContext) {
+        final ZebraPrinter instance = this;
+        String variable_name;
+        try {
+            variable_name = args.getString(0);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            callbackContext.error("Print Failed: " + e.getMessage());
+            return;
+        }
+        cordova.getThreadPool().execute(() -> {
+
+            try {
+                if (!isConnected()) {
+                    Log.v("EMO", "Printer Not Connected");
+                    callbackContext.error("Printer Not Connected.");
+                    return;
+                }
+
+                byte[] configLabel = new String("! U1 getvar \""+variable_name+"\"\r\n").getBytes();
+                printerConnection.write(configLabel);
+
+                byte[] data = printerConnection.read();
+
+                callbackContext.success(new String(data));
+            } catch (ConnectionException e) {
+                callbackContext.error("Error Printing: " + e.getMessage());
             }
         });
     }
